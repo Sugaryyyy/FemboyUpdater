@@ -1,0 +1,96 @@
+#/bin/sh
+LSB='/etc/lsb-release' 
+FEMBOYVERSION=`cat $LSB | grep 'DISTRIB_DESCRIPTION'`
+echo "Distro: $FEMBOYVERSION"
+
+if [[ $FEMBOYVERSION == *FemboyOS* ]];
+then
+  echo "This is a FemboyOS system (Passed distro test!)"
+  echo
+else
+  echo "This is not a FemboyOS system, check if your /etc/lsb-release file is correct and try again."
+  exit 1
+fi
+sleep 0.5
+echo "Checking internet access"
+echo
+echo
+
+if ping -c 1 github.com; then
+  echo
+  echo
+  echo "Internet connection check complete!"
+else
+ echo "Could not access Github (Check your internet conenction or GitHub status."
+ exit 2
+fi
+sleep 0.5
+echo
+echo
+echo 
+
+if git --version; then
+  echo "Git is installed."
+else 
+ echo "You do not have git installed!"
+ exit 127
+fi
+sleep 0.5
+
+if wget -V; then
+  echo "wget is installed."
+else 
+ echo "You do not have wget installed!"
+ exit 127
+fi
+sleep 0.5
+
+echo
+echo
+echo "All tests passed!"
+
+echo STARTING UPDATE PROCESS.
+
+echo "Downloading FemboyOS version list."
+
+wget -N https://raw.githubusercontent.com/Sugaryyyy/FemboyUpdater/main/versions.md
+
+CURRVER=`cat versions.md | grep "$FEMBOYVERSION" | grep -o "(.*)"`
+CURRVERFULL=`cat versions.md | grep "$FEMBOYVERSION" | rev | cut -c4- | rev | sed 's/DISTRIB_DESCRIPTION=//'` 
+NEWEST=`awk 'END{print}' versions.md | grep -o "(.*)"`
+NEWESTFULL=`awk 'END{print}' versions.md | rev | cut -c4- | rev | sed 's/DISTRIB_DESCRIPTION=//'` 
+
+echo "Checking updates."
+echo
+echo
+echo
+if [[ $CURRVER == $NEWEST ]];
+then
+  echo "No updates found"
+  exit 0
+fi
+
+echo "Found update!"
+echo
+echo "Do you want to update from $CURRVERFULL to $NEWESTFULL?"
+echo
+echo "Type y/N."
+echo
+read input
+
+
+if [[ $input == *y* ]];
+then
+  echo "Updating to $NEWESTFULL"
+else
+ if [[ $input == *Y* ]];
+ then
+  echo "Updating to $NEWESTFULL"
+ else
+  echo "Exiting."
+  exit 1
+ fi
+
+fi
+
+echo "Base script done. Updating after a FemboyOS update is released."
